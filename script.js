@@ -1,3 +1,5 @@
+const { computePosition, offset, flip, shift } = window.FloatingUIDOM;
+
 function getCitation(citation_id, type, style, format) {
     // Simulate fetching a citation based on the id
     // In a real scenario, this function would query a citation database or API
@@ -37,12 +39,12 @@ function formatCitations() {
 
         // Use Floating UI to manage tooltip position
         el.addEventListener('mouseenter', () => {
-            floatingUI.computePosition(el, tooltipContent, {
+            computePosition(el, tooltipContent, {
                 placement: 'top',
                 middleware: [
-                    floatingUI.offset(10),
-                    floatingUI.flip(),
-                    floatingUI.shift({ padding: 5 })
+                    FloatingUIDOM.offset(10),
+                    FloatingUIDOM.flip(),
+                    FloatingUIDOM.shift({ padding: 5 })
                 ],
             }).then(({ x, y }) => {
                 Object.assign(tooltipContent.style, {
