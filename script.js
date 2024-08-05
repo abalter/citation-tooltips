@@ -1,4 +1,5 @@
 const { computePosition, offset, flip, shift } = window.FloatingUIDOM;
+const Cite = require('citation-js')
 
 function getCitation(citation_id, type, style, format) {
     // Simulate fetching a citation based on the id
@@ -13,7 +14,7 @@ function getCitation(citation_id, type, style, format) {
 
 function formatCitations() {
     // Find all <cite> elements in the document
-    const citeElements = document.querySelectorAll('cite[data-style]');
+    const citeElements = document.querySFelectorAll('cite[data-style]');
 
     citeElements.forEach(el => {
         const dataStyle = el.getAttribute('data-style');

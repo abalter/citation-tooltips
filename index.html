@@ -22,84 +22,121 @@
             z-index: 1000;
         }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/@floating-ui/dom@1.6.8"></script>
+    <script src="https://unpkg.com/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/citation-js/0.5.0/citation.min.js"></script>
 </head>
 
 <body>
     <section>
         <h1>Important Text</h1>
-        <p>This is information <cite data-style="Chicago">@jones2024</cite></p>
-        <p>This is more information <cite data-style="Chicago">@smith2021,@johnson1999</cite></p>
+        <p>Lorem ipsum odor amet, consectetuer adipiscing elit. Sed conubia mauris morbi suscipit dis senectus eleifend
+            at
+            ligula. Quis interdum etiam imperdiet cursus, eu sollicitudin. Ligula sagittis porttitor sit consequat
+            vehicula.
+            Litora netus felis aptent consequat odio accumsan rhoncus. Nullam id integer nibh morbi tincidunt eros nisi
+            fringilla<cite>Loomes2017</cite>. Egestas gravida habitasse arcu quisque metus cursus aliquet ipsum libero.
+            Viverra
+            inceptos porta montes aenean ullamcorper sollicitudin. Dis odio mus velit sapien finibus nec nostra. Sapien
+            donec
+            sapien feugiat montes lectus <cite>Caldwell-Harris2023,GillespieLynch2017</cite>.</p>
+
+        <p>Etiam mauris dignissim a volutpat rutrum auctor ac venenatis. Justo fermentum volutpat taciti maximus
+            sagittis arcu
+            lobortis. Cras a vitae conubia aliquam dapibus dignissim consequat neque consectetur. Ad torquent nisi
+            senectus;
+            fames venenatis dolor <cite>Mantzalas2022,Caldwell-Harris2023</cite>. Consectetur vulputate scelerisque
+            efficitur;
+            aliquet duis risus. Rhoncus risus eget congue leo primis auctor. Vel penatibus venenatis nostra eu metus
+            posuere
+            pellentesque congue <cite>Pellicano2014,GillespieLynch2017,Loomes2017</cite>.</p>
     </section>
 
-    <a href="https://chatgpt.com/share/8b3aa6bf-086a-4d0a-a196-d648b136198f">help from chatgpt</a>
+    <section id="bibliography">
+        <h1>References</h1>
+        <section id="references-list"></section>
+    </section>
 
     <script>
-        const {computePosition, offset, flip, shift} = window.FloatingUIDOM;
+        const Cite = require('citation-js');
 
-        function getCitation(citation_id, type, style, format) {
-            // Simulate fetching a citation based on the id
-            // In a real scenario, this function would query a citation database or API
-            if (type === "inline") {
-                return `<span>${citation_id} (inline citation in ${style})</span>`;
-            } else if (type === "bibliography") {
-                return `<li>${citation_id} (bibliography entry in ${style})</li>`;
+        document.addEventListener('DOMContentLoaded', async function () {
+            const {createPopper} = window.Popper;
+
+            async function loadReferences() {
+                const response = await fetch('library.bib');
+                const bibText = await response.text();
+                return new Cite(bibText);
             }
-            return "";
-        }
 
-        function formatCitations() {
-            // Find all <cite> elements in the document
-            const citeElements = document.querySelectorAll('cite[data-style]');
+            function getCitation(citationInstance, citation_id, type, style, format) {
+                if (type === "inline") {
+                    return citationInstance.format('citation', {
+                        entry: citation_id,
+                        format: 'html',
+                        template: style,
+                        lang: 'en-US'
+                    });
+                } else if (type === "bibliography") {
+                    return citationInstance.format('bibliography', {
+                        entry: citation_id,
+                        format: 'html',
+                        template: style,
+                        lang: 'en-US'
+                    });
+                }
+                return "";
+            }
 
-            citeElements.forEach(el => {
-                const dataStyle = el.getAttribute('data-style');
-                const citation_ids = el.innerText.replace(/@/g, '').split(',').map(id => id.trim());
+            async function formatCitations() {
+                const citationInstance = await loadReferences();
 
-                // Create inline citation HTML
-                const inlineCitations = citation_ids.map(id => getCitation(id, "inline", dataStyle, "html")).join(', ');
+                // Find all <cite> elements in the document
+                const citeElements = document.querySelectorAll('cite');
 
-                // Create bibliography list for tooltip
-                const bibliographyList = citation_ids.map(id => getCitation(id, "bibliography", dataStyle, "html")).join('');
+                citeElements.forEach(el => {
+                    const citation_ids = el.innerText.split(',').map(id => id.trim());
 
-                // Replace innerHTML with inline citations
-                el.innerHTML = inlineCitations;
+                    // Create inline citation HTML
+                    const inlineCitations = citation_ids.map(id => getCitation(citationInstance, id, "inline", 'apa', "html")).join(', ');
 
-                // Create tooltip content
-                const tooltipContent = document.createElement('div');
-                tooltipContent.classList.add('tooltip-content');
-                tooltipContent.innerHTML = `<ul>${bibliographyList}</ul>`;
+                    // Create bibliography list for tooltip
+                    const bibliographyList = citation_ids.map(id => `<li>${getCitation(citationInstance, id, "bibliography", 'apa', "html")}</li>`).join('');
 
-                // Append tooltip content to the cite element
-                el.appendChild(tooltipContent);
-                el.classList.add('tooltip');
+                    // Replace innerHTML with inline citations
+                    el.innerHTML = inlineCitations;
 
-                // Use Floating UI to manage tooltip position
-                el.addEventListener('mouseenter', () => {
-                    tooltipContent.style.display = 'block';
-                    computePosition(el, tooltipContent, {
-                        placement: 'top',
-                        middleware: [
-                            offset(10),
-                            flip(),
-                            shift({padding: 5})
-                        ],
-                    }).then(({x, y}) => {
-                        Object.assign(tooltipContent.style, {
-                            left: `${x}px`,
-                            top: `${y}px`
+                    // Create tooltip content
+                    const tooltipContent = document.createElement('div');
+                    tooltipContent.classList.add('tooltip-content');
+                    tooltipContent.innerHTML = `<ul>${bibliographyList}</ul>`;
+
+                    // Append tooltip content to the cite element
+                    el.appendChild(tooltipContent);
+                    el.classList.add('tooltip');
+
+                    // Use Popper.js to manage tooltip position
+                    el.addEventListener('mouseenter', () => {
+                        tooltipContent.style.display = 'block';
+                        createPopper(el, tooltipContent, {
+                            placement: 'top',
+                            modifiers: [{
+                                name: 'offset',
+                                options: {
+                                    offset: [0, 10],
+                                },
+                            }],
                         });
                     });
-                });
 
-                el.addEventListener('mouseleave', () => {
-                    tooltipContent.style.display = 'none';
+                    el.addEventListener('mouseleave', () => {
+                        tooltipContent.style.display = 'none';
+                    });
                 });
-            });
-        }
+            }
 
-        // Execute the function after the DOM is fully loaded
-        document.addEventListener('DOMContentLoaded', formatCitations);
+            // Execute the function after the DOM is fully loaded
+            formatCitations();
+        });
     </script>
 </body>
 

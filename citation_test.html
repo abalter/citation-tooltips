@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Citation.js Example</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/citation-js/0.5.0/citation.min.js"></script>
+</head>
+
+<body>
+    <script>
+        document.addEventListener('DOMContentLoaded', async function () {
+            async function loadReferences() {
+                // Sample BibTeX string for demonstration
+                const bibText = `
+                @article{Loomes2017,
+                    title={Loomes Title},
+                    author={Loomes, Name},
+                    journal={Journal of Examples},
+                    year={2017}
+                }`;
+
+                try {
+                    const citation = new window.Cite(bibText);  // Using window.Cite to ensure global access
+                    console.log(citation);
+                } catch (error) {
+                    console.error("Error creating Cite instance:", error);
+                }
+            }
+
+            loadReferences();
+        });
+    </script>
+</body>
+
+</html>
