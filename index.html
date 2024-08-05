@@ -14,72 +14,39 @@
         .tooltip-content {
             display: none;
             position: absolute;
-            background: #333;
-            color: #fff;
-            padding: 5px;
-            border-radius: 5px;
+            background: #fff;
+            color: #000;
+            /* padding: 5px; */
+            /* border-radius: 5px; */
             white-space: pre-wrap;
             z-index: 1000;
         }
     </style>
-    <script src="https://unpkg.com/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/citation-js/0.5.0/citation.min.js"></script>
-</head>
-
-<body>
-    <section>
-        <h1>Important Text</h1>
-        <p>Lorem ipsum odor amet, consectetuer adipiscing elit. Sed conubia mauris morbi suscipit dis senectus eleifend
-            at
-            ligula. Quis interdum etiam imperdiet cursus, eu sollicitudin. Ligula sagittis porttitor sit consequat
-            vehicula.
-            Litora netus felis aptent consequat odio accumsan rhoncus. Nullam id integer nibh morbi tincidunt eros nisi
-            fringilla<cite>Loomes2017</cite>. Egestas gravida habitasse arcu quisque metus cursus aliquet ipsum libero.
-            Viverra
-            inceptos porta montes aenean ullamcorper sollicitudin. Dis odio mus velit sapien finibus nec nostra. Sapien
-            donec
-            sapien feugiat montes lectus <cite>Caldwell-Harris2023,GillespieLynch2017</cite>.</p>
-
-        <p>Etiam mauris dignissim a volutpat rutrum auctor ac venenatis. Justo fermentum volutpat taciti maximus
-            sagittis arcu
-            lobortis. Cras a vitae conubia aliquam dapibus dignissim consequat neque consectetur. Ad torquent nisi
-            senectus;
-            fames venenatis dolor <cite>Mantzalas2022,Caldwell-Harris2023</cite>. Consectetur vulputate scelerisque
-            efficitur;
-            aliquet duis risus. Rhoncus risus eget congue leo primis auctor. Vel penatibus venenatis nostra eu metus
-            posuere
-            pellentesque congue <cite>Pellicano2014,GillespieLynch2017,Loomes2017</cite>.</p>
-    </section>
-
-    <section id="bibliography">
-        <h1>References</h1>
-        <section id="references-list"></section>
-    </section>
-
-    <script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/citation-js/0.7.14/citation.js"></script>
+    <script type="module">
         const Cite = require('citation-js');
 
-        document.addEventListener('DOMContentLoaded', async function () {
-            const {createPopper} = window.Popper;
+        import {computePosition, shift, flip, offset} from 'https://cdn.jsdelivr.net/npm/@floating-ui/dom@1.6.8/+esm';
 
+        document.addEventListener('DOMContentLoaded', async function () {
             async function loadReferences() {
                 const response = await fetch('library.bib');
-                const bibText = await response.text();
-                return new Cite(bibText);
+                const library = await response.text();
+                return new Cite(library);
             }
 
             function getCitation(citationInstance, citation_id, type, style, format) {
                 if (type === "inline") {
                     return citationInstance.format('citation', {
                         entry: citation_id,
-                        format: 'html',
+                        format: 'text',
                         template: style,
                         lang: 'en-US'
                     });
                 } else if (type === "bibliography") {
                     return citationInstance.format('bibliography', {
                         entry: citation_id,
-                        format: 'html',
+                        format: 'text',
                         template: style,
                         lang: 'en-US'
                     });
@@ -94,10 +61,12 @@
                 const citeElements = document.querySelectorAll('cite');
 
                 citeElements.forEach(el => {
-                    const citation_ids = el.innerText.split(',').map(id => id.trim());
+                    // const citation_ids = el.innerText.split(',').map(id => id.trim());
+
+                    const citation_ids = el.innerText.trim();
 
                     // Create inline citation HTML
-                    const inlineCitations = citation_ids.map(id => getCitation(citationInstance, id, "inline", 'apa', "html")).join(', ');
+                    const inlineCitations = citation_ids.map(id => getCitation(citationInstance, id, "inline", 'chicago', "html")).join(', ');
 
                     // Create bibliography list for tooltip
                     const bibliographyList = citation_ids.map(id => `<li>${getCitation(citationInstance, id, "bibliography", 'apa', "html")}</li>`).join('');
@@ -114,17 +83,23 @@
                     el.appendChild(tooltipContent);
                     el.classList.add('tooltip');
 
-                    // Use Popper.js to manage tooltip position
+                    // Use Floating UI to manage tooltip position
                     el.addEventListener('mouseenter', () => {
                         tooltipContent.style.display = 'block';
-                        createPopper(el, tooltipContent, {
+                        computePosition(el, tooltipContent, {
                             placement: 'top',
-                            modifiers: [{
-                                name: 'offset',
-                                options: {
-                                    offset: [0, 10],
-                                },
-                            }],
+                            middleware: [
+                                offset({mainAxis: 10}), // Correct usage of offset
+                                flip(),
+                                shift({padding: 5})
+                            ],
+                        }).then(({x, y}) => {
+                            Object.assign(tooltipContent.style, {
+                                left: `${x}px`,
+                                top: `${y}px`
+                            });
+                        }).catch(error => {
+                            console.error("Error computing position:", error);
                         });
                     });
 
@@ -138,6 +113,33 @@
             formatCitations();
         });
     </script>
+</head>
+
+<body>
+    <section>
+        <h1>Important Text</h1>
+        <p>Lorem ipsum odor amet, consectetuer adipiscing elit. Sed conubia mauris morbi suscipit dis senectus eleifend
+            at ligula. Quis interdum etiam imperdiet cursus, eu sollicitudin. Ligula sagittis porttitor sit consequat
+            vehicula. Litora netus felis aptent consequat odio accumsan rhoncus. Nullam id integer nibh morbi tincidunt
+            eros nisi fringilla<cite>Loomes2017</cite>. Egestas gravida habitasse arcu quisque metus cursus aliquet
+            ipsum libero. Viverra inceptos porta montes aenean ullamcorper sollicitudin. Dis odio mus velit sapien
+            finibus nec nostra. Sapien donec sapien feugiat montes lectus
+            <cite>Caldwell-Harris2023,GillespieLynch2017</cite>.
+        </p>
+
+        <p>Etiam mauris dignissim a volutpat rutrum auctor ac venenatis. Justo fermentum volutpat taciti maximus
+            sagittis arcu lobortis. Cras a vitae conubia aliquam dapibus dignissim consequat neque consectetur. Ad
+            torquent nisi senectus; fames venenatis dolor <cite>Mantzalas2022,Caldwell-Harris2023</cite>. Consectetur
+            vulputate scelerisque efficitur; aliquet duis risus. Rhoncus risus eget congue leo primis auctor. Vel
+            penatibus venenatis nostra eu metus posuere pellentesque congue
+            <cite>Pellicano2014,GillespieLynch2017,Loomes2017</cite>.
+        </p>
+    </section>
+
+    <section id="bibliography">
+        <h1>References</h1>
+        <section id="references-list"></section>
+    </section>
 </body>
 
 </html>
