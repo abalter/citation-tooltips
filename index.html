@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>replit</title>
+  <link href="style.css" rel="stylesheet" type="text/css" />
+  <script src="https://unpkg.com/@floating-ui/dom@1.0.2/dist/floating-ui.dom.min.js"></script>
+
+  <style>
+    .tooltip {
+      position: relative;
+      cursor: pointer;
+    }
+
+    .tooltip-content {
+      display: none;
+      position: absolute;
+      left: 0;
+      bottom: 100%;
+      background: #333;
+      color: #fff;
+      padding: 5px;
+      border-radius: 5px;
+      white-space: pre-wrap;
+      z-index: 1000;
+    }
+
+    .tooltip:hover .tooltip-content {
+      display: block;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Important Text</h1>
+  <p>This is information <cite data-style="Chicago">@jones2024</cite></p>
+  <p>This is more information <cite data-style="Chicago">@smith2021,@johnson1999</cite></p>
+  <script src="script.js"></script>
+</body>
+
+</html>
