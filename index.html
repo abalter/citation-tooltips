@@ -30,7 +30,7 @@
 
         document.addEventListener('DOMContentLoaded', async function () {
             async function loadReferences() {
-                const response = await fetch('library.bib');
+                const response = await fetch('library.json');
                 const library = await response.text();
                 return new Cite(library);
             }
@@ -39,7 +39,7 @@
                 if (type === "inline") {
                     return citationInstance.format('citation', {
                         entry: citation_id,
-                        format: 'text',
+                        format: 'html',
                         template: style,
                         lang: 'en-US'
                     });
@@ -61,9 +61,7 @@
                 const citeElements = document.querySelectorAll('cite');
 
                 citeElements.forEach(el => {
-                    // const citation_ids = el.innerText.split(',').map(id => id.trim());
-
-                    const citation_ids = el.innerText.trim();
+                    const citation_ids = el.innerText.split(',').map(id => id.trim());
 
                     // Create inline citation HTML
                     const inlineCitations = citation_ids.map(id => getCitation(citationInstance, id, "inline", 'chicago', "html")).join(', ');
